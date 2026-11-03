@@ -1,4 +1,4 @@
-name: Build Starmarc APK Real
+name: Build Starmarc APK Real Nativa
 on: [push]
 jobs:
   build:
@@ -12,12 +12,14 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-      - name: Crear app nativa con tu web real
+      - name: Clonar tu web real y hacer app nativa
         run: |
           npm i -g @capacitor/cli
           rm -rf web android node_modules package.json package-lock.json capacitor.config.*
+          git clone https://github.com/marvinalfredoramires-png/Starmarc-Ops.git web-temp
           mkdir web
-          echo '<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;background:#0a0a0a;color:white;font-family:sans-serif"><h2>Cargando Starmarc Cloud...</h2></body></html>' > web/index.html
+          cp -r web-temp/* web/ || cp -r web-temp/. web/
+          ls web/
           echo '{"name":"starmarc","version":"1.0.0","dependencies":{"@capacitor/core":"^6.0.0","@capacitor/android":"^6.0.0"}}' > package.json
           npm install
           npx cap init "Starmarc Cloud" com.starmarc.cloud --web-dir=web
@@ -27,14 +29,7 @@ jobs:
             "appId": "com.starmarc.cloud",
             "appName": "Starmarc Cloud",
             "webDir": "web",
-            "server": {
-              "url": "https://marvinalfredoramires-png.github.io/Starmarc-Ops/",
-              "cleartext": true,
-              "androidScheme": "https"
-            },
-            "android": {
-              "allowMixedContent": true
-            }
+            "bundledWebRuntime": false
           }
           EOF
       - name: Compilar APK
@@ -45,5 +40,5 @@ jobs:
       - name: Subir APK
         uses: actions/upload-artifact@v4
         with:
-          name: Starmarc-APK-REAL
+          name: Starmarc-Cloud-NATIVA-FINAL
           path: android/app/build/outputs/apk/debug/app-debug.apk
