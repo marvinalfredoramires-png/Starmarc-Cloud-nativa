@@ -5,39 +5,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-          
-      - name: Setup Android
-        uses: android-actions/setup-android@v3
-        
-      - name: Crear app nativa Starmarc
+      - name: Crear app nativa
         run: |
-          npm install -g @capacitor/cli
+          npm i -g @capacitor/cli
+          rm -rf web android node_modules package.json package-lock.json
           mkdir web
-          echo '<html><body style="background:#000;color:#00ff88;text-align:center;padding:50px"><h1>Starmarc Cloud Nativa</h1><h3>Copia GENERAL activada</h3></body></html>' > web/index.html
-          echo '{"name":"starmarc","dependencies":{"@capacitor/core":"^6.0.0","@capacitor/android":"^6.0.0"}}' > package.json
+          echo '<h1>Starmarc Cloud Nativa</h1>' > web/index.html
+          echo '{"name":"starmarc","version":"1.0.0","dependencies":{"@capacitor/core":"^6.0.0","@capacitor/android":"^6.0.0"}}' > package.json
           npm install
           npx cap init "Starmarc Cloud" com.starmarc.cloud --web-dir=web
           npx cap add android
-          
       - name: Compilar APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
-          
       - name: Subir APK
         uses: actions/upload-artifact@v4
         with:
-          name: Starmarc-Cloud-APK-NATIVA
+          name: Starmarc-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
