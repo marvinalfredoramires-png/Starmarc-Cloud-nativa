@@ -1,4 +1,4 @@
-name: Build Starmarc APK Real Nativa
+name: Build Starmarc APK Icono y Portada
 on: [push]
 jobs:
   build:
@@ -6,39 +6,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+        with: { node-version: '20' }
       - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-      - name: Clonar tu web real y hacer app nativa
+        with: { distribution: 'temurin', java-version: '21' }
+      - name: Build con icono y splash
         run: |
           npm i -g @capacitor/cli
-          rm -rf web android node_modules package.json package-lock.json capacitor.config.*
+          rm -rf web android node_modules package.json capacitor.config.*
           git clone https://github.com/marvinalfredoramires-png/Starmarc-Ops.git web-temp
           mkdir web
-          cp -r web-temp/* web/ || cp -r web-temp/. web/
-          ls web/
-          echo '{"name":"starmarc","version":"1.0.0","dependencies":{"@capacitor/core":"^6.0.0","@capacitor/android":"^6.0.0"}}' > package.json
+          cp -r web-temp/* web/ || true
+          echo '{"name":"starmarc","version":"1.0.0","dependencies":{"@capacitor/core":"^6.0.0","@capacitor/android":"^6.0.0","@capacitor/splash-screen":"^6.0.0"}}' > package.json
           npm install
           npx cap init "Starmarc Cloud" com.starmarc.cloud --web-dir=web
           npx cap add android
+          for f in android/app/src/main/res/mipmap-*/ic_launcher.png; do cp icon.png "$f"; done
+          for f in android/app/src/main/res/mipmap-*/ic_launcher_round.png; do cp icon.png "$f"; done
+          mkdir -p android/app/src/main/res/drawable
+          cp splash.png android/app/src/main/res/drawable/splash.png
           cat > capacitor.config.json << 'EOF'
-          {
-            "appId": "com.starmarc.cloud",
-            "appName": "Starmarc Cloud",
-            "webDir": "web",
-            "bundledWebRuntime": false
-          }
+          {"appId":"com.starmarc.cloud","appName":"Starmarc Cloud","webDir":"web","plugins":{"SplashScreen":{"launchShowDuration":2000,"backgroundColor":"#0a1931","androidSplashResourceName":"splash","showSpinner":false}}}
           EOF
-      - name: Compilar APK
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
-      - name: Subir APK
-        uses: actions/upload-artifact@v4
+      - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
         with:
-          name: Starmarc-Cloud-NATIVA-FINAL
+          name: Starmarc-Cloud-FINAL
           path: android/app/build/outputs/apk/debug/app-debug.apk
